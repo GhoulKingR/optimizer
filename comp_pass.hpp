@@ -8,9 +8,14 @@ struct Variable;
 struct Integer;
 struct PlusOpr;
 
+using Expression = std::variant<
+    std::shared_ptr<Variable>, std::shared_ptr<Integer>, std::shared_ptr<PlusOpr>
+>;
+
 class CopyPropagation
 {
     std::unordered_map<std::string, std::string> passed;
+    void processExpression(Expression expr);
 public:
     void processAssignment(Assignment *assignment);
     void processVariable(Variable *var);
@@ -21,6 +26,7 @@ public:
 
 class DisplayEngine
 {
+    void processExpression(Expression expr);
 public:
     void processReturn(Return *ret);
     void processPlusOpr(PlusOpr *opr);

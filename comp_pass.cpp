@@ -2,15 +2,22 @@
 #include <iostream>
 #include <variant>
 
+void CopyPropagation::processExpression(Expression expr) {
+    if (std::holds_alternative<std::shared_ptr<Variable>>(expr)) {
+        std::get<std::shared_ptr<Variable>>(expr)->process(this);
+    } else if (std::holds_alternative<std::shared_ptr<Integer>>(expr)) {
+        std::get<std::shared_ptr<Integer>>(expr)->process(this);
+    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(expr)) {
+        std::get<std::shared_ptr<PlusOpr>>(expr)->process(this);
+    }
+}
+
 void CopyPropagation::processAssignment(Assignment *assignment) {
+    processExpression(assignment->expr);
+
     if (std::holds_alternative<std::shared_ptr<Variable>>(assignment->expr)) {
         std::shared_ptr<Variable> &var = std::get<std::shared_ptr<Variable>>(assignment->expr);
-        var->process(this);
         passed[assignment->name] = var->name;
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(assignment->expr)) {
-        std::get<std::shared_ptr<Integer>>(assignment->expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(assignment->expr)) {
-        std::get<std::shared_ptr<PlusOpr>>(assignment->expr)->process(this);
     }
 }
 
@@ -21,67 +28,37 @@ void CopyPropagation::processVariable(Variable *var) {
 }
 
 void CopyPropagation::processPlusOpr(PlusOpr *opr) {
-    if (std::holds_alternative<std::shared_ptr<Variable>>(opr->left)) {
-        std::get<std::shared_ptr<Variable>>(opr->left)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(opr->left)) {
-        std::get<std::shared_ptr<Integer>>(opr->left)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(opr->left)) {
-        std::get<std::shared_ptr<PlusOpr>>(opr->left)->process(this);
-    }
-
-    if (std::holds_alternative<std::shared_ptr<Variable>>(opr->right)) {
-        std::get<std::shared_ptr<Variable>>(opr->right)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(opr->right)) {
-        std::get<std::shared_ptr<Integer>>(opr->right)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(opr->right)) {
-        std::get<std::shared_ptr<PlusOpr>>(opr->right)->process(this);
-    }
+    processExpression(opr->left);
+    processExpression(opr->right);
 }
 
 void CopyPropagation::processInteger(Integer *) {}
 
 void CopyPropagation::processReturn(Return *ret) {
-    if (std::holds_alternative<std::shared_ptr<Variable>>(ret->expr)) {
-        std::get<std::shared_ptr<Variable>>(ret->expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(ret->expr)) {
-        std::get<std::shared_ptr<Integer>>(ret->expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(ret->expr)) {
-        std::get<std::shared_ptr<PlusOpr>>(ret->expr)->process(this);
+    processExpression(ret->expr);
+}
+
+void DisplayEngine::processExpression(Expression expr) {
+    if (std::holds_alternative<std::shared_ptr<Variable>>(expr)) {
+        std::get<std::shared_ptr<Variable>>(expr)->process(this);
+    } else if (std::holds_alternative<std::shared_ptr<Integer>>(expr)) {
+        std::get<std::shared_ptr<Integer>>(expr)->process(this);
+    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(expr)) {
+        std::get<std::shared_ptr<PlusOpr>>(expr)->process(this);
     }
+
 }
 
 void DisplayEngine::processReturn(Return *ret) {
     std::cout << "return ";
-
-    if (std::holds_alternative<std::shared_ptr<Variable>>(ret->expr)) {
-        std::get<std::shared_ptr<Variable>>(ret->expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(ret->expr)) {
-        std::get<std::shared_ptr<Integer>>(ret->expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(ret->expr)) {
-        std::get<std::shared_ptr<PlusOpr>>(ret->expr)->process(this);
-    }
-
+    processExpression(ret->expr);
     std::cout << ";\n";
 }
 
 void DisplayEngine::processPlusOpr(PlusOpr *opr) {
-    if (std::holds_alternative<std::shared_ptr<Variable>>(opr->left)) {
-        std::get<std::shared_ptr<Variable>>(opr->left)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(opr->left)) {
-        std::get<std::shared_ptr<Integer>>(opr->left)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(opr->left)) {
-        std::get<std::shared_ptr<PlusOpr>>(opr->left)->process(this);
-    }
-
+    processExpression(opr->left);
     std::cout << " + ";
-
-    if (std::holds_alternative<std::shared_ptr<Variable>>(opr->right)) {
-        std::get<std::shared_ptr<Variable>>(opr->right)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(opr->right)) {
-        std::get<std::shared_ptr<Integer>>(opr->right)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(opr->right)) {
-        std::get<std::shared_ptr<PlusOpr>>(opr->right)->process(this);
-    }
+    processExpression(opr->right);
 }
 
 void DisplayEngine::processInteger(Integer *num) {
@@ -94,12 +71,6 @@ void DisplayEngine::processVariable(Variable *var) {
 
 void DisplayEngine::processAssignment(Assignment *assignment) {
     std::cout << "let " << assignment->name << " = ";
-    if (std::holds_alternative<std::shared_ptr<Variable>>(assignment->expr)) {
-        std::get<std::shared_ptr<Variable>>(assignment->expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(assignment->expr)) {
-        std::get<std::shared_ptr<Integer>>(assignment->expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(assignment->expr)) {
-        std::get<std::shared_ptr<PlusOpr>>(assignment->expr)->process(this);
-    }
+    processExpression(assignment->expr);
     std::cout << ";\n";
 }

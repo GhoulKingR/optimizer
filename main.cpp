@@ -6,6 +6,19 @@
 #include "comp_pass.hpp"
 #include "types.hpp"
 
+using CompilerPass = std::variant<DisplayEngine *, CopyPropagation *>;
+using Expression = std::variant<
+    std::shared_ptr<Variable>, std::shared_ptr<Integer>, std::shared_ptr<PlusOpr>
+>;
+
+void processStatement(Statement &stmt, CompilerPass pass) {
+    if (std::holds_alternative<Return>(stmt)) {
+        std::get<Return>(stmt).process(pass);
+    } else {
+        std::get<Assignment>(stmt).process(pass);
+    }
+}
+
 int main()
 {
     // create setup in object for block, equal statements, and return
@@ -21,30 +34,18 @@ int main()
     std::cout << "Before: \n";
     DisplayEngine disp;
     for (Statement &stmt : block) {
-        if (std::holds_alternative<Return>(stmt)) {
-            std::get<Return>(stmt).process(&disp);
-        } else {
-            std::get<Assignment>(stmt).process(&disp);
-        }
+        processStatement(stmt, &disp);
     }
 
     // copy propagation pass
     CopyPropagation propagation;
     for (auto &stmt : block) {
-        if (std::holds_alternative<Return>(stmt)) {
-            std::get<Return>(stmt).process(&propagation);
-        } else {
-            std::get<Assignment>(stmt).process(&propagation);
-        }
+        processStatement(stmt, &propagation);
     }
 
     std::cout << "\nAfter: \n";
     for (auto &stmt : block) {
-        if (std::holds_alternative<Return>(stmt)) {
-            std::get<Return>(stmt).process(&disp);
-        } else {
-            std::get<Assignment>(stmt).process(&disp);
-        }
+        processStatement(stmt, &disp);
     }
     return 0;
 }
