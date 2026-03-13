@@ -7,32 +7,36 @@ struct Return;
 struct Variable;
 struct Integer;
 struct PlusOpr;
+struct Expression;
 
-using Expression = std::variant<
-    std::shared_ptr<Variable>, std::shared_ptr<Integer>, std::shared_ptr<PlusOpr>
->;
+class CompilerPass {
+public:
+    virtual void processAssignment(Assignment *assignment) {};
+    virtual void processVariable(Variable *var) {};
+    virtual void processInteger(Integer *) {};
+    virtual void processPlusOpr(PlusOpr *opr) {};
+    virtual void processReturn(Return *ret) {};
+};
 
-class CopyPropagation
+class CopyPropagation : public CompilerPass
 {
     std::unordered_map<std::string, std::string> passed;
-    void processExpression(Expression expr);
+    void processExpression(Expression *expr);
 public:
-    void processAssignment(Assignment *assignment);
-    void processVariable(Variable *var);
-    void processInteger(Integer *);
-    void processPlusOpr(PlusOpr *opr);
-    void processReturn(Return *ret);
+    void processAssignment(Assignment *assignment) override;
+    void processVariable(Variable *var) override;
+    void processInteger(Integer *) override;
+    void processPlusOpr(PlusOpr *opr) override;
+    void processReturn(Return *ret) override;
 };
 
-class DisplayEngine
+class DisplayEngine : public CompilerPass
 {
-    void processExpression(Expression expr);
+    void processExpression(Expression *expr);
 public:
-    void processReturn(Return *ret);
-    void processPlusOpr(PlusOpr *opr);
-    void processInteger(Integer *num);
-    void processVariable(Variable *var);
-    void processAssignment(Assignment *ass);
+    void processReturn(Return *ret) override;
+    void processPlusOpr(PlusOpr *opr) override;
+    void processInteger(Integer *num) override;
+    void processVariable(Variable *var) override;
+    void processAssignment(Assignment *ass) override;
 };
-
-using CompilerPass = std::variant<DisplayEngine *, CopyPropagation *>;

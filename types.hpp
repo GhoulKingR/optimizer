@@ -1,59 +1,54 @@
 #pragma once
-#include <memory>
 #include <string>
-#include <variant>
 #include "comp_pass.hpp"
 
-class DisplayEngine;
-class CopyPropagation;
-class Variable;
-class Integer;
-class PlusOpr;
+class CompilerPass;
 
-using CompilerPass = std::variant<DisplayEngine *, CopyPropagation *>;
-using Expression = std::variant<
-    std::shared_ptr<Variable>, std::shared_ptr<Integer>, std::shared_ptr<PlusOpr>
->;
+struct Expression {
+    virtual void process(CompilerPass*) {};
+};
 
-struct Variable
+struct Variable : Expression
 {
     std::string name;
 
     Variable(std::string n);
-    void process(CompilerPass);
+    void process(CompilerPass*) override;
 };
 
-struct Integer
+struct Integer : Expression
 {
     int n;
 
     Integer (int number);
-    void process(CompilerPass);
+    void process(CompilerPass*) override;
 };
 
-struct PlusOpr
+struct PlusOpr : Expression
 {
-    Expression left, right;
+    Expression *left, *right;
 
-    PlusOpr (Expression left, Expression right);
-    void process(CompilerPass);
+    PlusOpr (Expression *left, Expression *right);
+    void process(CompilerPass*) override;
 };
 
-struct Assignment
+struct Statement {
+    virtual void process(CompilerPass*) {};
+};
+
+struct Assignment : Statement
 {
     std::string name;
-    Expression expr;
+    Expression *expr;
 
-    Assignment(std::string n, Expression e);
-    void process(CompilerPass);
+    Assignment(std::string n, Expression *e);
+    void process(CompilerPass*) override;
 };
 
-struct Return
+struct Return : Statement
 {
-    Expression expr;
+    Expression *expr;
 
-    Return (Expression expr);
-    void process(CompilerPass);
+    Return (Expression *expr);
+    void process(CompilerPass*);
 };
-
-using Statement = std::variant<Assignment, Return>;

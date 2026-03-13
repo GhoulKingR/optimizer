@@ -1,50 +1,52 @@
 #include <iostream>
-#include <memory>
-#include <string>
-#include <variant>
-#include <vector>
 #include "comp_pass.hpp"
 #include "types.hpp"
 
-using CompilerPass = std::variant<DisplayEngine *, CopyPropagation *>;
-using Expression = std::variant<
-    std::shared_ptr<Variable>, std::shared_ptr<Integer>, std::shared_ptr<PlusOpr>
->;
-
-void processStatement(Statement &stmt, CompilerPass pass) {
-    if (std::holds_alternative<Return>(stmt)) {
-        std::get<Return>(stmt).process(pass);
-    } else {
-        std::get<Assignment>(stmt).process(pass);
-    }
+void processStatement(Statement *stmt, CompilerPass *pass) {
+    stmt->process(pass);
 }
 
 int main()
 {
     // create setup in object for block, equal statements, and return
-    std::vector<Statement> block;
+    std::array<Statement*, 5> block;
 
-    block.push_back(Assignment("globalVariable", std::make_shared<Integer>(10)));   // let globalVariable = 15;
-    block.push_back(Assignment("a", std::make_shared<Variable>("globalVariable"))); // let a = globalVariable;
-    block.push_back(Assignment("b", std::make_shared<PlusOpr>(
-        std::make_shared<Variable>("a"), std::make_shared<Integer>(15))));          // let b = a + 15;
-    block.push_back(Assignment("ans", std::make_shared<Variable>("b")));            // let ans = b;
-    block.push_back(Return(std::make_shared<Variable>("ans")));                     // return ans
+    Integer n(10);
+    Assignment s1("globalVariable", &n);
+    block[0] = &s1;                       // let globalVariable = 15;
+
+    Variable global("globalVariable");
+    Assignment s2("a", &global);
+    block[1] = &s2;                       // let a = globalVariable;
+
+    Variable a("a");
+    Integer  i15(15);
+    PlusOpr  opr(&a, &i15);
+    Assignment s3("b", &opr);
+    block[2] = &s3;                       // let b = a + 15;
+
+    Variable b("b");
+    Assignment s4("ans", &b);
+    block[3] = &s4;                       // let ans = b;
+
+    Variable ans("ans");
+    Return s5(&ans);
+    block[4] = &s5;                       // return ans
 
     std::cout << "Before: \n";
     DisplayEngine disp;
-    for (Statement &stmt : block) {
+    for (Statement *stmt : block) {
         processStatement(stmt, &disp);
     }
 
     // copy propagation pass
     CopyPropagation propagation;
-    for (auto &stmt : block) {
+    for (Statement *stmt : block) {
         processStatement(stmt, &propagation);
     }
 
     std::cout << "\nAfter: \n";
-    for (auto &stmt : block) {
+    for (Statement *stmt : block) {
         processStatement(stmt, &disp);
     }
     return 0;

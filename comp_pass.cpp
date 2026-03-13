@@ -1,22 +1,15 @@
 #include "comp_pass.hpp"
 #include <iostream>
-#include <variant>
 
-void CopyPropagation::processExpression(Expression expr) {
-    if (std::holds_alternative<std::shared_ptr<Variable>>(expr)) {
-        std::get<std::shared_ptr<Variable>>(expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(expr)) {
-        std::get<std::shared_ptr<Integer>>(expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(expr)) {
-        std::get<std::shared_ptr<PlusOpr>>(expr)->process(this);
-    }
+void CopyPropagation::processExpression(Expression *expr) {
+    expr->process(this);
 }
 
 void CopyPropagation::processAssignment(Assignment *assignment) {
     processExpression(assignment->expr);
 
-    if (std::holds_alternative<std::shared_ptr<Variable>>(assignment->expr)) {
-        std::shared_ptr<Variable> &var = std::get<std::shared_ptr<Variable>>(assignment->expr);
+    Variable *var = dynamic_cast<Variable*>(assignment->expr);
+    if (var != nullptr) {
         passed[assignment->name] = var->name;
     }
 }
@@ -38,15 +31,8 @@ void CopyPropagation::processReturn(Return *ret) {
     processExpression(ret->expr);
 }
 
-void DisplayEngine::processExpression(Expression expr) {
-    if (std::holds_alternative<std::shared_ptr<Variable>>(expr)) {
-        std::get<std::shared_ptr<Variable>>(expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<Integer>>(expr)) {
-        std::get<std::shared_ptr<Integer>>(expr)->process(this);
-    } else if (std::holds_alternative<std::shared_ptr<PlusOpr>>(expr)) {
-        std::get<std::shared_ptr<PlusOpr>>(expr)->process(this);
-    }
-
+void DisplayEngine::processExpression(Expression *expr) {
+    expr->process(this);
 }
 
 void DisplayEngine::processReturn(Return *ret) {
