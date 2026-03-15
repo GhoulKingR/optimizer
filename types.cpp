@@ -1,6 +1,6 @@
 #include "types.hpp"
 
-Variable::Variable(std::string n): name(n) {}
+Variable::Variable(const char *n): name(n) {}
 
 void Variable::process(CompilerPass &pass) {
     pass.processVariable(*this);
@@ -20,7 +20,7 @@ void PlusOpr::process(CompilerPass &pass) {
     pass.processPlusOpr(*this);
 }
 
-Assignment::Assignment(std::string n, Expression &e)
+Assignment::Assignment(const char *n, Expression &e)
     : name(n), expr(e)
 {}
 

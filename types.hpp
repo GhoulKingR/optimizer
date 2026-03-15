@@ -12,7 +12,7 @@ struct Variable : Expression
 {
     std::string name;
 
-    Variable(std::string n);
+    Variable(const char *n);
     void process(CompilerPass&) override;
 };
 
@@ -41,7 +41,7 @@ struct Assignment : Statement
     std::string name;
     Expression &expr;
 
-    Assignment(std::string n, Expression &e);
+    Assignment(const char *n, Expression &e);
     void process(CompilerPass&) override;
 };
 
