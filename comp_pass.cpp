@@ -1,62 +1,71 @@
 #include "comp_pass.hpp"
+#include "types.hpp"
 #include <iostream>
 
-void CopyPropagation::processExpression(Expression *expr) {
-    expr->process(this);
+void CopyPropagation::processExpression(Expression &expr) {
+    expr.process(*this);
 }
 
-void CopyPropagation::processAssignment(Assignment *assignment) {
-    processExpression(assignment->expr);
+void CopyPropagation::processAssignment(Assignment &assignment) {
+    processExpression(assignment.expr);
 
-    Variable *var = dynamic_cast<Variable*>(assignment->expr);
+    Variable *var = dynamic_cast<Variable*>(&(assignment.expr));
     if (var != nullptr) {
-        passed[assignment->name] = var->name;
+        passed[assignment.name] = var->name;
     }
 }
 
-void CopyPropagation::processVariable(Variable *var) {
-    if(passed.find(var->name) != passed.end()) {
-        var->name = passed[var->name];
+void CopyPropagation::processVariable(Variable &var) {
+    if(passed.find(var.name) != passed.end()) {
+        var.name = passed[var.name];
     }
 }
 
-void CopyPropagation::processPlusOpr(PlusOpr *opr) {
-    processExpression(opr->left);
-    processExpression(opr->right);
+void CopyPropagation::processPlusOpr(PlusOpr &opr) {
+    processExpression(opr.left);
+    processExpression(opr.right);
 }
 
-void CopyPropagation::processInteger(Integer *) {}
+void CopyPropagation::processInteger(Integer &) {}
 
-void CopyPropagation::processReturn(Return *ret) {
-    processExpression(ret->expr);
+void CopyPropagation::processReturn(Return &ret) {
+    processExpression(ret.expr);
 }
 
-void DisplayEngine::processExpression(Expression *expr) {
-    expr->process(this);
+void CopyPropagation::processStatement(Statement &stmt) {
+    stmt.process(*this);
 }
 
-void DisplayEngine::processReturn(Return *ret) {
+void DisplayEngine::processExpression(Expression &expr) {
+    expr.process(*this);
+}
+
+void DisplayEngine::processReturn(Return &ret) {
     std::cout << "return ";
-    processExpression(ret->expr);
+    processExpression(ret.expr);
     std::cout << ";\n";
 }
 
-void DisplayEngine::processPlusOpr(PlusOpr *opr) {
-    processExpression(opr->left);
+void DisplayEngine::processPlusOpr(PlusOpr &opr) {
+    processExpression(opr.left);
     std::cout << " + ";
-    processExpression(opr->right);
+    processExpression(opr.right);
 }
 
-void DisplayEngine::processInteger(Integer *num) {
-    std::cout << num->n;
+void DisplayEngine::processInteger(Integer &num) {
+    std::cout << num.n;
 }
 
-void DisplayEngine::processVariable(Variable *var) {
-    std::cout << var->name;
+void DisplayEngine::processVariable(Variable &var) {
+    std::cout << var.name;
 }
 
-void DisplayEngine::processAssignment(Assignment *assignment) {
-    std::cout << "let " << assignment->name << " = ";
-    processExpression(assignment->expr);
+void DisplayEngine::processAssignment(Assignment &assignment) {
+    std::cout << "let " << assignment.name << " = ";
+    processExpression(assignment.expr);
     std::cout << ";\n";
+}
+
+void DisplayEngine::processStatement(Statement &stmt) {
+    stmt.process(*this);
 }

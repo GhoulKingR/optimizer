@@ -5,7 +5,7 @@
 class CompilerPass;
 
 struct Expression {
-    virtual void process(CompilerPass*) {};
+    virtual void process(CompilerPass&) {};
 };
 
 struct Variable : Expression
@@ -13,7 +13,7 @@ struct Variable : Expression
     std::string name;
 
     Variable(std::string n);
-    void process(CompilerPass*) override;
+    void process(CompilerPass&) override;
 };
 
 struct Integer : Expression
@@ -21,34 +21,34 @@ struct Integer : Expression
     int n;
 
     Integer (int number);
-    void process(CompilerPass*) override;
+    void process(CompilerPass&) override;
 };
 
 struct PlusOpr : Expression
 {
-    Expression *left, *right;
+    Expression &left, &right;
 
-    PlusOpr (Expression *left, Expression *right);
-    void process(CompilerPass*) override;
+    PlusOpr (Expression &left, Expression &right);
+    void process(CompilerPass&) override;
 };
 
 struct Statement {
-    virtual void process(CompilerPass*) {};
+    virtual void process(CompilerPass&) {};
 };
 
 struct Assignment : Statement
 {
     std::string name;
-    Expression *expr;
+    Expression &expr;
 
-    Assignment(std::string n, Expression *e);
-    void process(CompilerPass*) override;
+    Assignment(std::string n, Expression &e);
+    void process(CompilerPass&) override;
 };
 
 struct Return : Statement
 {
-    Expression *expr;
+    Expression &expr;
 
-    Return (Expression *expr);
-    void process(CompilerPass*);
+    Return (Expression &expr);
+    void process(CompilerPass&);
 };
